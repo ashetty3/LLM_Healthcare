@@ -1,47 +1,23 @@
-Demographics and Patient Details
-    Full name and preferred name
-    Date of birth
-    Unique identification number
-    Address and telephone number
-    Sex at birth and gender identity
-    Ethnicity
-    Next of kin or emergency contact details
-    General Practitioner (GP) Details
+Step 1
+Patient Identification: Begin by filling in the patient's essential information, like age, sex, and date of birth.
 
-Hospital Details
-    Discharging consultant and department
-    Admission and discharge dates and times
-    Discharge destination
+Step 2
+Admission and Discharge Dates: Include the dates the patient was admitted and discharged.
 
-Outstanding Issues
-    Labs to be ordered/followed up on (e.g., Hematocrit and Creatinine in 2 weeks)
-    Instructions to visiting nurse (e.g., daily weight monitoring and specific contact actions)
-    Appointments to be scheduled with specific details about the medical provider and contact information
+Step 3
+Reason for Admission: Detail the primary diagnosis or condition that necessitated hospitalization.
 
-History of Present Illness (HPI)
-    Concise paragraph summarizing the reason for admission, distinct from initial history and physical
+Step 4
+Procedures Performed: Describe any surgical or non-surgical procedures done during the hospital stay.
 
-Past Medical History (PMHx)
-    Important concurrent diagnoses (e.g., CHF with specific ejection fraction, history of myocardial infarctions, significant lesions, HIV status)
+Step 5
+Medications Prescribed: List the medications prescribed to the patient at discharge, including dosages and frequency.
 
-Medications
-    Updated medication list after reconciliation
-    Note significant changes and rationale
+Step 6
+Patient's Condition at Discharge: Provide a summary of the patient's health status at discharge.
 
-Hospital Course
-    Initial presentation in the emergency department including vital signs, initial management related to labs and studies
-    Subsequent hospital course on the ward, detailing management and responses to treatments, any complications, and pertinent physical exam findings
-    Final status of studies and labs
+Step 7
+Follow-up Care Instructions: Offer detailed instructions for post-hospital care, including medications, dietary restrictions, physical activity recommendations, and future appointments.
 
-Discharge Condition
-    Relevant discharge information like blood pressure in hypertensive patients, weight in CHF patients, oxygen saturation in COPD patients
-    Current status of any abnormal labs and studies at discharge
-
-Final Instructions and Follow-Up
-    Specific follow-up appointments, including location and contact details
-    Clear instructions for primary care provider or nursing home regarding ongoing care needs and pending issues
-
-Additional Considerations
-    Start discharge summaries early for complicated cases
-    Ensure clarity and conciseness; avoid jargon and abbreviations
-    Use language that is understandable to all potential readers including patients and caregivers
+Step 8
+Hospital Stay Summary: Summarize the patient's course of care during hospitalization, from symptoms and diagnoses to treatments and patient responses.
