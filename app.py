@@ -3,6 +3,7 @@ from openai import OpenAI
 import logging
 import json
 import re
+import requests
 
 
 
@@ -16,7 +17,7 @@ with open(credentials_path, 'r') as file:
     credentials = json.load(file)
 
 openai_api_key = credentials['openai_api_key']
-
+umls_api_key = credentials['umls_api_key']
 # Use the API key as needed, for example, to configure OpenAI's API client
 OpenAI.api_key = openai_api_key
 
@@ -143,6 +144,90 @@ def generate_patient_summary_ToT(patient_data, additional_prompts='', instructio
     # Return the content of the generated message
     return result
 
+# RAG
+def generate_rag_query(patient_data):
+    # Initialize the OpenAI client with your API key
+    client = OpenAI(api_key=openai_api_key)
+
+    message = {
+                "role": "user",
+                "content": f"""
+                              Suppose you are a physician writing a discharge letter for a patient. You will include a short paragraph explaning the disease for the patient.
+                              You will use the Unified Medical Language System (UMLS) for retrieval augmented generation.
+                              Based on the patient data, generate an one-word query for the UMLS. Only display the word.
+                              Write the output in this format: one word for the disease
+                              Example: Diabete
+                              Data: {patient_data}
+                """,
+    }
+
+    # Create the chat completion request with the patient data
+    chat_completion = client.chat.completions.create(
+        messages=[
+          message
+        ],
+        model="gpt-3.5-turbo",
+    )
+    result = chat_completion.choices[0].message.content
+    logger.info(f'Q: {message}')
+    logger.info(f'A: {result}')
+    # Return the content of the generated message
+    return result
+
+def search_umls(term, api_key):
+    search_url = f"https://uts-ws.nlm.nih.gov/rest/search/current"
+    params = {
+        'apiKey': api_key,
+        'string':f'{term}'
+    }
+    response = requests.get(search_url, params=params)
+    logger.info(f'Search UMLS: term: {term}')
+    return response.json()
+
+def get_concept_definition(cui, api_key):
+    """Get the concept definition using the CUI and service ticket."""
+    api_url = f"https://uts-ws.nlm.nih.gov/rest/content/current/CUI/{cui}/definitions"
+    params = {
+        'apiKey': api_key,
+    }
+    response = requests.get(api_url, params=params)
+    logger.info(f'''
+    Get Concept Definition: cui: {cui}
+    Response: {response.json()}
+                ''')
+    return response.json()
+
+def generate_rag_explanation(patient_data,umls):
+    # Initialize the OpenAI client with your API key
+    client = OpenAI(api_key=openai_api_key)
+
+    message =   {
+                "role": "user",
+                "content": f"""
+                              Suppose you are a physician writing a discharge letter for a patient. You will include a short paragraph explaning the disease for the patient.
+                              You will use the Unified Medical Language System (UMLS) for retrieval augmented generation.
+                              Based on the patient data and retrieved UMLS results, generate a brief explanation (100-200 words) of the disease for the patient.
+                              Do not use unnecessary medical terminology to ensure the patient can understand the disease.
+                              Data: {patient_data}
+                              UMLS result: {umls}
+                              Format:
+                                Terminology:
+                                Explanation:
+                """,
+    }
+    # Create the chat completion request with the patient data
+    chat_completion = client.chat.completions.create(
+        messages=[
+          message
+        ],
+        model="gpt-3.5-turbo",
+    )
+    result = chat_completion.choices[0].message.content
+    logger.info(f'Q: {message}')
+    logger.info(f'A: {result}')
+    # Return the content of the generated message
+    return result
+
 # Main function
 def main():
     st.title("Healthcare AI Assistant")
@@ -191,14 +276,33 @@ def main():
             st.error("Invalid JSON format. Please upload a valid JSON file.")
 
 
+
     # Display results
     if result_discharge is not None:
         st.write(f"Patient Discharge Decision: {result_discharge}")
 
     if result_summary is not None:
         st.write("Generated Patient Summary:")
-        replaced_text = result_summary.replace('yyyyy', pat_name)
-        st.write(result_summary)
+        replaced_text = result_summary.replace('YYYYY', pat_name)
+        st.write(replaced_text)
+        with st.container():
+            
+            query = generate_rag_query(mod_patient_data)
+            print(query)
+            results = search_umls(query, umls_api_key)
+            print(results)
+            cui = None
+            if results['result']['results']:
+                cui = results['result']['results'][0]['ui']
+            print(cui)
+            if cui:
+                results = get_concept_definition(cui, umls_api_key)
+                definition = results['result']
+                rag_text = generate_rag_explanation(mod_patient_data,definition)
+                st.header('Disease Explanation')
+                st.write(rag_text)
+     
+        
 
 if __name__ == "__main__":
     main()
