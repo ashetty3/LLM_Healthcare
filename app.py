@@ -5,9 +5,19 @@ import json
 
 
 
-# Initialize logger
-logger = logging.getLogger(__name__)
+# Global variables
+logger = None
+openai_api_key = None
+umls_api_key = None
 
+def del_sensitive_data(data,sensitive_key = ['name','firstname','lastname','patient_id']):
+  keys = list(data.keys())
+  for key in keys:
+    if type(data[key]) is dict:
+      del_sensitive_data(data[key])
+    else:
+      if key.lower() in sensitive_key:
+        del data[key]
 
 def ok_for_discharge(patient_data):
     # Initialize the OpenAI client with your API key
@@ -81,6 +91,37 @@ def generate_patient_summary(patient_data, additional_prompts='', instructions='
     # Return the content of the generated message
     return result
 
+def init_credentials(credentials_path):
+    with open(credentials_path, 'r') as file:
+        credentials = json.load(file)
+
+    openai_api_key = credentials['openai_api_key']
+    umls_api_key = credentials['umls_api_key']
+
+def init_logger():
+    #Setup the logger
+    logger = logging.getLogger('logger')  # Create a logger object
+    logger.setLevel(logging.DEBUG)  # Set the minimum logging level
+
+    #Create a file handler that logs even debug messages
+    file_handler = logging.FileHandler('llm.log')
+    file_handler.setLevel(logging.DEBUG)
+
+    # Create a formatter
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+    file_handler.setFormatter(formatter)
+
+    # Add the file handler to the logger
+    logger.addHandler(file_handler)
+
+
+def init():
+    # Init the credentials
+    credentials_path = 'credentials.json'
+    init_credentials(credentials_path)
+
+    # Init the logger
+    init_logger()
 # Main function
 def main():
     st.title("Healthcare AI Assistant")
@@ -96,15 +137,18 @@ def main():
     if uploaded_file is not None:
         # Parse JSON data
         try:
+            # De-identify patient data
             patient_data = json.load(uploaded_file)
-
+            llm_patient_data = patient_data.copy()
+            del_sensitive_data(llm_patient_data)
+            
             # Perform Patient Discharge Decision
-            result_discharge = ok_for_discharge(patient_data)
+            result_discharge = ok_for_discharge(llm_patient_data)
             
             # Check if the patient is discharged
             if result_discharge == "Yes":
                 # Perform Generate Patient Summary
-                result_summary = generate_patient_summary(patient_data)
+                result_summary = generate_patient_summary(llm_patient_data)
 
 
     
@@ -139,6 +183,7 @@ def main():
         st.write(result_summary)
 
 if __name__ == "__main__":
+    init()
     main()
 #Example: {example}
 
@@ -149,3 +194,4 @@ if __name__ == "__main__":
 
 
 #python -m streamlit run app.py
+# if uploading error, try streamlit run app.py --server.enableXsrfProtection false
