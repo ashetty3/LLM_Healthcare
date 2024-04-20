@@ -6,9 +6,25 @@ import json
 
 
 # Global variables
-logger = None
-openai_api_key = None
-umls_api_key = None
+if 'logger' not in st.session_state:
+    logger = None
+else:
+    logger = st.session_state['logger']
+
+if 'openai_api_key' not in st.session_state:
+    openai_api_key = None
+else:
+    openai_api_key = st.session_state['openai_api_key']
+
+if 'umls_api_key' not in st.session_state:
+    umls_api_key = None
+else:
+    umls_api_key = st.session_state['umls_api_key']
+
+if 'client' not in st.session_state:
+    client = None
+else:
+    client = st.session_state['client']
 
 def del_sensitive_data(data,sensitive_key = ['name','firstname','lastname','patient_id']):
   keys = list(data.keys())
@@ -20,9 +36,6 @@ def del_sensitive_data(data,sensitive_key = ['name','firstname','lastname','pati
         del data[key]
 
 def ok_for_discharge(patient_data):
-    # Initialize the OpenAI client with your API key
-    client = OpenAI(api_key=openai_api_key)
-
     message =  {
                 "role": "user",
                 "content": f"""w
@@ -57,8 +70,6 @@ def generate_patient_summary(patient_data, additional_prompts='', instructions='
     Returns:
     - str: The generated patient summary.
     """
-    # Initialize the OpenAI client with your API key
-    client = OpenAI(api_key=openai_api_key)
 
     instructions = """
     General Principle:
@@ -91,12 +102,50 @@ def generate_patient_summary(patient_data, additional_prompts='', instructions='
     # Return the content of the generated message
     return result
 
+
+def get_static_data():
+    # Initialize OpenAI message
+    inst_path = 'instructions.txt'
+    eg_path = 'examples/eg1.txt'
+
+
+    with open(inst_path, 'r') as file:
+        instructions = file.read()
+        print(instructions)
+
+    with open(eg_path, 'r') as file:
+        example = file.read()
+        print(example)
+    return instructions, example
+
+def process_patient_data(patient_data):
+    if patient_data is not None:
+        llm_patient_data = patient_data.copy()
+        del_sensitive_data(llm_patient_data)
+        
+        # Perform Patient Discharge Decision
+        result_discharge = ok_for_discharge(llm_patient_data)
+        
+        # Check if the patient is discharged
+        if result_discharge == "Yes":
+            # Perform Generate Patient Summary
+            result_summary = generate_patient_summary(llm_patient_data)
+        else:
+            result_summary = "The patient is not safe for discharge."
+        
+        st.write(result_summary)
+  
+
 def init_credentials(credentials_path):
     with open(credentials_path, 'r') as file:
         credentials = json.load(file)
 
     openai_api_key = credentials['openai_api_key']
     umls_api_key = credentials['umls_api_key']
+    OpenAI.api_key = openai_api_key
+    # Initialize the OpenAI client
+    client = OpenAI(api_key=openai_api_key)
+
 
 def init_logger():
     #Setup the logger
@@ -122,6 +171,8 @@ def init():
 
     # Init the logger
     init_logger()
+
+
 # Main function
 def main():
     st.title("Healthcare AI Assistant")
@@ -133,26 +184,13 @@ def main():
     result_discharge = None
     result_summary = None
 
+    patient_data = None
     # If JSON file is uploaded, process it
     if uploaded_file is not None:
         # Parse JSON data
         try:
             # De-identify patient data
             patient_data = json.load(uploaded_file)
-            llm_patient_data = patient_data.copy()
-            del_sensitive_data(llm_patient_data)
-            
-            # Perform Patient Discharge Decision
-            result_discharge = ok_for_discharge(llm_patient_data)
-            
-            # Check if the patient is discharged
-            if result_discharge == "Yes":
-                # Perform Generate Patient Summary
-                result_summary = generate_patient_summary(llm_patient_data)
-
-
-    
-
         except json.JSONDecodeError:
             st.error("Invalid JSON format. Please upload a valid JSON file.")
 
@@ -173,17 +211,15 @@ def main():
 
         except json.JSONDecodeError:
             st.error("Invalid JSON format. Please enter patient data in valid JSON format.")
+    
+    process_patient_data(patient_data)
 
-    # Display results
-    if result_discharge is not None:
-        st.write(f"Patient Discharge Decision: {result_discharge}")
-
-    if result_summary is not None:
-        st.write("Generated Patient Summary:")
-        st.write(result_summary)
+        
 
 if __name__ == "__main__":
     init()
+    client = OpenAI(api_key=openai_api_key)
+    print(f'Client: {client}')
     main()
 #Example: {example}
 
