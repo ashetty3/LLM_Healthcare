@@ -7,17 +7,20 @@ Admission and Discharge Dates: Include the dates the patient was admitted and di
 Step 3
 Reason for Admission: Detail the primary diagnosis or condition that necessitated hospitalization.
 
-Step 4
-Procedures Performed: Describe any surgical or non-surgical procedures done during the hospital stay.
+Step 4 
+Past Medical History:Important concurrent diagnoses (e.g., CHF with specific ejection fraction, history of myocardial infarctions, significant lesions, HIV status)
 
 Step 5
-Medications Prescribed: List the medications prescribed to the patient at discharge, including dosages and frequency.
+Procedures Performed: Describe any surgical or non-surgical procedures done during the hospital stay.
 
 Step 6
-Patient's Condition at Discharge: Provide a summary of the patient's health status at discharge.
+Medications Prescribed: List the medications prescribed to the patient at discharge, including dosages and frequency.
 
 Step 7
-Follow-up Care Instructions: Offer detailed instructions for post-hospital care, including medications, dietary restrictions, physical activity recommendations, and future appointments.
+Patient's Condition at Discharge: Provide a summary of the patient's health status at discharge.
 
 Step 8
+Follow-up Care Instructions: Offer detailed instructions for post-hospital care, including medications, dietary restrictions, physical activity recommendations, and future appointments.
+
+Step 9
 Hospital Stay Summary: Summarize the patient's course of care during hospitalization, from symptoms and diagnoses to treatments and patient responses.
