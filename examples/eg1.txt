@@ -1,0 +1,29 @@
+Patient Identification
+Name: John Rivers
+Date of Birth: January 1, 1980
+Medical Record Number: 123456
+
+Date of Admission: April 1, 2023
+Date of Discharge: May 25, 2023
+
+Reason for Admission:
+Patient presented to the emergency department with severe chest pain radiating to the left arm, accompanied by shortness of breath and sweating. Initial EKG findings and elevated cardiac enzymes confirmed the diagnosis of Acute Myocardial Infarction (heart attack).
+
+Procedures Performed:
+Coronary Angiogram revealed a 90% stenosis in the left anterior descending (LAD) artery. Coronary Angioplasty and placement of a drug-eluting stent were successfully performed to reestablish blood flow.
+
+Medications Prescribed:
+
+Aspirin, 81 mg daily (antiplatelet agent for heart health)
+Atorvastatin, 40 mg daily (to manage cholesterol levels)
+Metoprolol, 50 mg twice daily (beta-blocker to control heart rate and blood pressure)
+Nitroglycerin, as needed (for chest pain relief)
+Patient's Condition at Discharge:
+At discharge, the patient's condition was stable. Mild, intermittent chest discomfort was reported but significantly improved compared to admission. The patient was ambulatory and independent in performing activities of daily living. Vital signs were within normal range. Cardiac rhythm was sinus rhythm with no significant ectopy.
+
+Follow-up Care Instructions:
+Medications: Continue all prescribed medications without interruption unless advised by a doctor.
+Diet: Follow a heart-healthy diet low in sodium, saturated fats, and simple carbohydrates.
+Exercise: Start with light walking, gradually increasing to moderate-intensity exercise for at least 30 minutes a day as tolerated.
+Lifestyle: Smoking cessation advised (if applicable), and stress management techniques recommended.
+Follow-up: Schedule an appointment with a cardiologist in 2 weeks and with the primary care physician within one week.
