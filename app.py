@@ -1,3 +1,21 @@
+"""
+Healthcare AI Assistant Application
+
+This Streamlit application utilizes OpenAI's GPT-3.5 model to assist healthcare professionals by
+automating the creation of discharge summaries and providing disease explanations based on patient data. 
+It integrates with the Unified Medical Language System (UMLS) for retrieval augmented generation (RAG).
+
+Requirements:
+- streamlit: For the web application interface.
+- openai: Python client library for OpenAI's GPT-3.5 model.
+- requests: For making API calls to external services like UMLS.
+
+
+Author: Haoge Huang, Coco Chen, Apoorva Shetty
+Date: 04/24/2024
+"""
+
+#streamlit run app.py --server.enableXsrfProtection false
 import streamlit as st
 from openai import OpenAI
 import logging
@@ -5,10 +23,21 @@ import json
 import re
 import requests
 
-
-
 # Initialize logger
-logger = logging.getLogger(__name__)
+#Setup the logger
+logger = logging.getLogger('logger')  # Create a logger object
+logger.setLevel(logging.DEBUG)  # Set the minimum logging level
+
+#Create a file handler that logs even debug messages
+file_handler = logging.FileHandler('llm.log')
+file_handler.setLevel(logging.DEBUG)
+
+# Create a formatter
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+file_handler.setFormatter(formatter)
+
+# Add the file handler to the logger
+logger.addHandler(file_handler)
 
 
 credentials_path = 'credentials.json'
@@ -51,17 +80,6 @@ def ok_for_discharge(patient_data):
 
 
 def generate_patient_summary(patient_data, additional_prompts='', instructions='',example=''):
-    """
-    Generates a patient summary using OpenAI's GPT-3.5.
-
-    Parameters:
-    - patient_data (str): The patient data to generate the summary from.
-    - additional_prompts (str): Any additional prompts
-
-    Returns:
-    - str: The generated patient summary.
-    """
-    # Initialize the OpenAI client with your API key
     client = OpenAI(api_key=openai_api_key)
 
     instructions = """
@@ -123,9 +141,9 @@ def generate_patient_summary_ToT(patient_data, additional_prompts='', instructio
                               The task is : 
                               You are writing a discharge summary for a patient. Use patient data from context only. Minimize hallucinations.
                               Focus on precision and minimize any assumptions or hallucinations not directly supported by the data. 
-                              
+                              Very important: this should be in a letter format and focus on patient's comprehension ability
                               {additional_prompts}
-                              Guideline to write the letter to the patient: {instructions} Address the patient in third-person beginning and replace name with yyyyy.
+                              Guideline to write the letter to the patient: {instructions} Address the patient in third-person beginning and replace name with Secret.
                               Data: {patient_data}
                              
 
@@ -146,7 +164,7 @@ def generate_patient_summary_ToT(patient_data, additional_prompts='', instructio
 
 # RAG
 def generate_rag_query(patient_data):
-    # Initialize the OpenAI client with your API key
+    # Extracts a disease term from the patient data to query the UMLS. 
     client = OpenAI(api_key=openai_api_key)
 
     message = {
@@ -175,6 +193,7 @@ def generate_rag_query(patient_data):
     return result
 
 def search_umls(term, api_key):
+    # Uses the disease term to match the most related Concept Unique Identifiers (CUIs) UMLS API
     search_url = f"https://uts-ws.nlm.nih.gov/rest/search/current"
     params = {
         'apiKey': api_key,
@@ -185,7 +204,7 @@ def search_umls(term, api_key):
     return response.json()
 
 def get_concept_definition(cui, api_key):
-    """Get the concept definition using the CUI and service ticket."""
+    # Get the concept definition using the CUI and service ticket.
     api_url = f"https://uts-ws.nlm.nih.gov/rest/content/current/CUI/{cui}/definitions"
     params = {
         'apiKey': api_key,
@@ -198,7 +217,7 @@ def get_concept_definition(cui, api_key):
     return response.json()
 
 def generate_rag_explanation(patient_data,umls):
-    # Initialize the OpenAI client with your API key
+    # Generates a brief explanation of the disease for the patient using the UMLS results.
     client = OpenAI(api_key=openai_api_key)
 
     message =   {
@@ -234,30 +253,27 @@ def main():
 
     # Initialize variables for user interaction
     uploaded_file = st.file_uploader("Upload JSON file:", type=["json"])
-    #patient_data_input = st.text_area("Enter Patient data:", "")
-    #patient_inst = st.text_area("Enter Additional instructions data:", "")
-    additional_prompts = 'Make sure that the important components of the guideline for the letter are captured and it seems professional and well structured.Consider expert inputs and also generate the final letter'
+    additional_prompts = '''
+    Make sure that the important components of the guideline for the letter are captured and it seems professional and well structured.Consider expert inputs and also generate the final letter. 
+    Start with "Dear Healthcare Provider,". 
+    End with "Sincerely, 
+    Healthcare AI Assistant".
+    '''
     result_discharge = None
     result_summary = None
 
     #Instructions for a good discharge summary :
+    file_path = 'instructions.txt'
 
-    # Define the path to your file
-    file_path = 'How to write a discharge summary.txt'
-
-# Open the file using 'open()' in read mode ('r')
     with open(file_path, 'r') as file:
-    # Read the contents of the file
         instructions = file.read()
-
-
 
     # If JSON file is uploaded, process it
     if uploaded_file is not None:
         # Parse JSON data
         try:
-            #patient_data = json.load(uploaded_file)
             mod_patient_data = json.load(uploaded_file)
+            # delete the name and patient id from the patient datas
             pat_name = mod_patient_data['patient_demographics']['name']
             pat_id = mod_patient_data['patient_id']
             del mod_patient_data['patient_demographics']['name']
@@ -270,11 +286,8 @@ def main():
             if result_discharge == "Yes":
                 # Perform Generate Patient Summary
                 result_summary = generate_patient_summary_ToT(mod_patient_data,additional_prompts,instructions)
-
-    
         except json.JSONDecodeError:
             st.error("Invalid JSON format. Please upload a valid JSON file.")
-
 
 
     # Display results
@@ -282,11 +295,11 @@ def main():
         st.write(f"Patient Discharge Decision: {result_discharge}")
 
     if result_summary is not None:
-        st.write("Generated Patient Summary:")
+        st.header("Discharge Letter:")
         replaced_text = result_summary.replace('YYYYY', pat_name)
+        replaced_text = replaced_text.replace('yyyyy', pat_name)
         st.write(replaced_text)
         with st.container():
-            
             query = generate_rag_query(mod_patient_data)
             print(query)
             results = search_umls(query, umls_api_key)
@@ -302,16 +315,7 @@ def main():
                 st.header('Disease Explanation')
                 st.write(rag_text)
      
-        
 
 if __name__ == "__main__":
     main()
-#Example: {example}
 
-
-
-
-
-#streamlit run app.py --server.enableXsrfProtection false
-
-#python -m streamlit run app.py
